@@ -23,7 +23,7 @@ def get_responses(product_name, ):
     return response
 
 
-def clean_up_data(response, filename):
+def clean_up_data(response, filename, filter):
     df = pd.json_normalize(response.json()['products'])
 
     columns_to_not_drop = ["gtin", "name", "price.value", "basePriceUnit", "basePrice.formattedValue",
@@ -33,7 +33,7 @@ def clean_up_data(response, filename):
 
     df.drop(columns=columns_to_drop, inplace=True)
 
-    df = df[df['name'].str.contains("Rasierschaum|Rasiergel|Rasieröl|Rasiercreme")]
+    df = df[df['name'].str.contains(filter)]
 
     indexNames = df[df['basePriceUnit'] == 'St'].index
     df.drop(indexNames, inplace=True)
@@ -110,6 +110,7 @@ if __name__ == '__main__':
     genders = ["Herren", "Frauen", "Divers"]
     colors = ["purple", "yellow", "blue"]
     markers = ["<", ">", "^"]
+    filter = "Rasierschaum|Rasiergel|Rasieröl|Rasiercreme"
 
     gender_responses = list()
     for gender in genders:
@@ -117,7 +118,7 @@ if __name__ == '__main__':
 
     df_genders = list()
     for gender_response, gender in zip(gender_responses, genders):
-        df_genders.append(clean_up_data(gender_response, gender))
+        df_genders.append(clean_up_data(gender_response, gender, filter))
 
     plot_anzahl(genders, df_genders.copy())
     plot_preis_100ml(genders, df_genders.copy(), markers, colors)
