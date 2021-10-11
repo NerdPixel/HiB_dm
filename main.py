@@ -9,7 +9,7 @@ def create_url(query, searchType, type, pageSize):
     return f"https://product-search.services.dmtech.com/de/search?query={query}&searchType={searchType}&type={type}&pageSize={pageSize}"
 
 
-def get_responses(product_name, ):
+def get_responses(product_name):
     payload = {}
     headers = {}
 
@@ -24,6 +24,8 @@ def get_responses(product_name, ):
 
 
 def clean_up_data(response, filename, filter):
+    if not filename:
+        filename = "standard"
     df = pd.json_normalize(response.json()['products'])
 
     columns_to_not_drop = ["gtin", "name", "price.value", "basePriceUnit", "basePrice.formattedValue",
@@ -107,14 +109,18 @@ def plot_preis_100ml(genders, df_genders, marker, colors):
 
 
 if __name__ == '__main__':
-    genders = ["Herren", "Frauen", "Divers"]
-    colors = ["purple", "yellow", "blue"]
-    markers = ["<", ">", "^"]
+    genders = ["Herren", "Frauen", "Divers", "ohne Geschlecht"]
+    colors = ["purple", "yellow", "blue", "green"]
+    markers = ["<", ">", "^", "v"]
     filter = "Rasierschaum|Rasiergel|Rasieröl|Rasiercreme"
 
     gender_responses = list()
     for gender in genders:
+        if gender == "ohne Geschlecht":
+            gender_responses.append(get_responses("rasierschaum"))
+            continue
         gender_responses.append(get_responses("rasierschaum " + gender))
+
 
     df_genders = list()
     for gender_response, gender in zip(gender_responses, genders):
